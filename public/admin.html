@@ -12,7 +12,7 @@ h1 { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 8px; 
 .subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 14px; }
 .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-input[type="text"], input[type="password"] { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+select, input[type="text"], input[type="password"] { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
 input:focus { outline: none; border-color: #4361ee; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-primary { background: #4361ee; color: #fff; }
@@ -88,6 +88,20 @@ h2 { font-size: 18px; margin-bottom: 16px; }
     </div>
 
     <div class="card">
+      <h2>当前模型</h2>
+      <div class="admin-row">
+        <label>选择模型</label>
+        <select id="defaultModel">
+          <option value="deepseek">DeepSeek</option>
+          <option value="mimo">MiMo</option>
+          <option value="zhipu">智谱AI</option>
+        </select>
+        <button class="btn btn-copy" onclick="saveModel()">保存</button>
+      </div>
+      <div id="modelMsg"></div>
+    </div>
+
+    <div class="card">
       <h2>密码管理</h2>
       <div class="password-row">
         <label>使用密码</label>
@@ -138,6 +152,7 @@ async function login() {
     document.getElementById('adminKeyDeepseek').placeholder = data.api_key_deepseek || '未设置';
     document.getElementById('adminKeyMimo').placeholder = data.api_key_mimo || '未设置';
     document.getElementById('adminKeyZhipu').placeholder = data.api_key_zhipu || '未设置';
+    document.getElementById('defaultModel').value = data.default_model || 'deepseek';
 
     loadHistory();
   } catch (e) {
@@ -249,6 +264,28 @@ function showApiMsg(msg, type) {
 
 function showPwMsg(msg, type) {
   const el = document.getElementById('pwMsg');
+  el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
+  setTimeout(() => el.innerHTML = '', 3000);
+}
+
+async function saveModel() {
+  const value = document.getElementById('defaultModel').value;
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'default_model', value, password: adminPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    showModelMsg('模型已切换为 ' + value, 'success');
+  } catch (e) {
+    showModelMsg('保存失败: ' + e.message, 'error');
+  }
+}
+
+function showModelMsg(msg, type) {
+  const el = document.getElementById('modelMsg');
   el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
   setTimeout(() => el.innerHTML = '', 3000);
 }

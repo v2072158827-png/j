@@ -89,15 +89,6 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
   </div>
 
   <div class="card">
-    <label for="model">选择模型</label>
-    <select id="model">
-      <option value="deepseek">DeepSeek</option>
-      <option value="mimo">MiMo</option>
-      <option value="zhipu">智谱AI</option>
-    </select>
-  </div>
-
-  <div class="card">
     <label>上传简历文件</label>
     <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
       <input type="file" id="fileInput" accept=".pdf,.docx" />
@@ -238,13 +229,6 @@ async function handleDocx(file) {
   }
 }
 
-const modelSelect = document.getElementById('model');
-const savedModel = localStorage.getItem('selected_model') || 'deepseek';
-modelSelect.value = savedModel;
-modelSelect.addEventListener('change', () => {
-  localStorage.setItem('selected_model', modelSelect.value);
-});
-
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((el, i) => {
     el.classList.toggle('active', (tab === 'detail' && i === 0) || (tab === 'compare' && i === 1));
@@ -254,7 +238,6 @@ function switchTab(tab) {
 }
 
 async function analyze() {
-  const modelKey = modelSelect.value;
   const resume = resumeInput.value.trim();
   const password = passwordInput.value.trim();
 
@@ -276,7 +259,7 @@ async function analyze() {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: modelKey, resume, password }),
+      body: JSON.stringify({ resume, password }),
     });
 
     const data = await response.json();

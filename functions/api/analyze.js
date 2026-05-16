@@ -24,9 +24,9 @@ const PROMPT = `请分析以下简历，提供：
 
 export async function onRequestPost(context) {
   try {
-    const { model, resume, password } = await context.request.json();
+    const { resume, password } = await context.request.json();
 
-    if (!model || !resume) {
+    if (!resume) {
       return Response.json({ error: '缺少必要参数' }, { status: 400 });
     }
 
@@ -36,6 +36,9 @@ export async function onRequestPost(context) {
     if (pwRow && pwRow.value && pwRow.value !== password) {
       return Response.json({ error: '密码错误' }, { status: 403 });
     }
+
+    const modelRow = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('default_model').first();
+    const model = modelRow?.value || 'deepseek';
 
     const config = MODELS[model];
     if (!config) {
