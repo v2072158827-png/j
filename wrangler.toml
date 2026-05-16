@@ -1,0 +1,7 @@
+name = "resume-optimizer"
+pages_build_output_dir = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "resume-optimizer-db"
+database_id = "placeholder-will-be-filled-after-creating-db"

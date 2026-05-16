@@ -12,11 +12,8 @@ h1 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; 
 .subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 15px; }
 .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-select, input[type="password"], textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
-select:focus, input[type="password"]:focus, input[type="text"]:focus, textarea:focus { outline: none; border-color: #4361ee; }
-.key-wrap { position: relative; display: flex; }
-.key-wrap input { padding-right: 56px; }
-.btn-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #4361ee; font-size: 13px; cursor: pointer; padding: 4px 8px; }
+select, input[type="text"], input[type="password"], textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+select:focus, input:focus, textarea:focus { outline: none; border-color: #4361ee; }
 textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
 .upload-area:hover, .upload-area.dragover { border-color: #4361ee; background: #f8f9ff; }
@@ -46,6 +43,7 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error { color: #e63946; background: #fff0f0; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
+.success { color: #2d9d4e; background: #f0fff4; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
 #results { display: none; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
 .toast.show { opacity: 1; }
@@ -70,8 +68,18 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .history-meta { font-size: 13px; color: #999; }
 .history-preview { font-size: 14px; color: #555; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-actions { display: flex; gap: 8px; }
+.admin-toggle { text-align: center; margin-top: 40px; }
+.btn-link { background: none; border: none; color: #999; font-size: 13px; cursor: pointer; text-decoration: underline; }
+.btn-link:hover { color: #4361ee; }
+#adminSection { display: none; }
+.admin-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.admin-row label { flex-shrink: 0; width: 100px; margin-bottom: 0; line-height: 42px; }
+.admin-row input { flex: 1; }
+.admin-row .btn { flex-shrink: 0; }
 @media (max-width: 640px) {
   .compare-wrap { flex-direction: column; }
+  .admin-row { flex-direction: column; align-items: stretch; }
+  .admin-row label { width: auto; line-height: normal; }
 }
 </style>
 </head>
@@ -87,14 +95,6 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
       <option value="mimo">MiMo</option>
       <option value="zhipu">智谱AI</option>
     </select>
-  </div>
-
-  <div class="card">
-    <label for="apiKey">API Key</label>
-    <div class="key-wrap">
-      <input type="password" id="apiKey" placeholder="" />
-      <button class="btn-toggle" id="toggleKey" type="button" onclick="toggleApiKey()">显示</button>
-    </div>
   </div>
 
   <div class="card">
@@ -164,6 +164,32 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
     </div>
     <div id="historyList"></div>
   </div>
+
+  <div class="admin-toggle">
+    <button class="btn-link" onclick="toggleAdmin()">管理后台</button>
+  </div>
+
+  <div id="adminSection">
+    <div class="card">
+      <h2 style="font-size:18px; margin-bottom:20px;">API Key 配置</h2>
+      <div class="admin-row">
+        <label>DeepSeek</label>
+        <input type="password" id="adminKeyDeepseek" placeholder="输入 DeepSeek API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('deepseek')">保存</button>
+      </div>
+      <div class="admin-row">
+        <label>MiMo</label>
+        <input type="password" id="adminKeyMimo" placeholder="输入 MiMo API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('mimo')">保存</button>
+      </div>
+      <div class="admin-row">
+        <label>智谱AI</label>
+        <input type="password" id="adminKeyZhipu" placeholder="输入智谱 API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('zhipu')">保存</button>
+      </div>
+      <div id="adminMsg"></div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -173,7 +199,6 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// PDF 上传处理
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const uploadInfo = document.getElementById('uploadInfo');
@@ -184,8 +209,7 @@ uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dr
 uploadArea.addEventListener('drop', e => {
   e.preventDefault();
   uploadArea.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) handleFile(file);
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
 fileInput.addEventListener('change', e => {
   if (e.target.files[0]) handleFile(e.target.files[0]);
@@ -233,65 +257,13 @@ async function handleDocx(file) {
   }
 }
 
-const MODELS = {
-  deepseek: {
-    name: 'DeepSeek',
-    endpoint: 'https://api.deepseek.com/v1/chat/completions',
-    model: 'deepseek-chat',
-    placeholder: 'DeepSeek API Key（从 platform.deepseek.com 获取）'
-  },
-  mimo: {
-    name: 'MiMo',
-    endpoint: 'https://api.xiaomimimo.com/v1/chat/completions',
-    model: 'mimo-v2-flash',
-    placeholder: 'MiMo API Key（从 api.xiaomimimo.com 获取）'
-  },
-  zhipu: {
-    name: '智谱AI',
-    endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-    model: 'glm-4',
-    placeholder: '智谱 API Key（从 open.bigmodel.cn 获取）'
-  }
-};
-
 const modelSelect = document.getElementById('model');
-const apiKeyInput = document.getElementById('apiKey');
-
-// 初始化：恢复上次选择
 const savedModel = localStorage.getItem('selected_model') || 'deepseek';
 modelSelect.value = savedModel;
-const savedKey = localStorage.getItem(`api_key_${savedModel}`);
-if (savedKey) apiKeyInput.value = savedKey;
-updatePlaceholder();
-
-modelSelect.dataset.prev = savedModel;
 modelSelect.addEventListener('change', () => {
-  const prev = modelSelect.dataset.prev;
-  const m = modelSelect.value;
-  localStorage.setItem('selected_model', m);
-  const currentKey = apiKeyInput.value.trim();
-  if (currentKey) localStorage.setItem(`api_key_${prev}`, currentKey);
-  apiKeyInput.value = localStorage.getItem(`api_key_${m}`) || '';
-  modelSelect.dataset.prev = m;
-  updatePlaceholder();
+  localStorage.setItem('selected_model', modelSelect.value);
 });
 
-function updatePlaceholder() {
-  apiKeyInput.placeholder = MODELS[modelSelect.value].placeholder;
-}
-
-function toggleApiKey() {
-  const btn = document.getElementById('toggleKey');
-  if (apiKeyInput.type === 'password') {
-    apiKeyInput.type = 'text';
-    btn.textContent = '隐藏';
-  } else {
-    apiKeyInput.type = 'password';
-    btn.textContent = '显示';
-  }
-}
-
-// 标签页切换
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((el, i) => {
     el.classList.toggle('active', (tab === 'detail' && i === 0) || (tab === 'compare' && i === 1));
@@ -300,68 +272,118 @@ function switchTab(tab) {
   document.getElementById('tab-compare').style.display = tab === 'compare' ? 'block' : 'none';
 }
 
-// 历史记录
-const HISTORY_KEY = 'resume_history';
-function getHistory() {
-  return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+async function analyze() {
+  const modelKey = modelSelect.value;
+  const resume = document.getElementById('resume').value.trim();
+
+  if (!resume) { showError('请粘贴简历内容'); return; }
+
+  hideError();
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const btnSpinner = document.getElementById('btnSpinner');
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  btnSpinner.style.display = 'inline-flex';
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelKey, resume }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `请求失败 (${response.status})`);
+
+    document.getElementById('suggestions').innerHTML = renderMarkdown(escapeHtml(data.suggestions));
+    document.getElementById('rewritten').innerHTML = renderMarkdown(escapeHtml(data.rewritten));
+    document.getElementById('compareOriginal').innerHTML = escapeHtml(resume).replace(/\n/g, '<br>');
+    document.getElementById('compareRewritten').innerHTML = renderMarkdown(escapeHtml(data.rewritten));
+    document.getElementById('results').style.display = 'block';
+    switchTab('detail');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+    loadHistory();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = 'inline';
+    btnSpinner.style.display = 'none';
+  }
 }
-function saveHistory(item) {
-  const history = getHistory();
-  history.unshift(item);
-  if (history.length > 20) history.length = 20;
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-  renderHistory();
-}
-function deleteHistoryItem(idx) {
-  const history = getHistory();
-  history.splice(idx, 1);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-  renderHistory();
-}
-function clearHistory() {
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
-}
-function loadHistoryItem(idx) {
-  const item = getHistory()[idx];
-  if (!item) return;
-  document.getElementById('resume').value = item.original;
-  document.getElementById('suggestions').innerHTML = renderMarkdown(escapeHtml(item.suggestions));
-  document.getElementById('rewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
-  document.getElementById('compareOriginal').innerHTML = escapeHtml(item.original).replace(/\n/g, '<br>');
-  document.getElementById('compareRewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
-  document.getElementById('results').style.display = 'block';
-  switchTab('detail');
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-}
-function renderHistory() {
-  const history = getHistory();
-  const section = document.getElementById('historySection');
-  const list = document.getElementById('historyList');
-  if (history.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  list.innerHTML = history.map((item, i) => {
-    const date = new Date(item.time);
-    const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-    const preview = item.original.slice(0, 60);
-    return `<div class="history-item" onclick="loadHistoryItem(${i})">
-      <div class="history-item-header">
-        <span class="history-meta">${timeStr} · ${item.model}</span>
-        <div class="history-actions">
-          <button class="btn btn-sm btn-copy" onclick="event.stopPropagation();copyToClipboardText('${encodeURIComponent(item.rewritten)}')">复制改写</button>
-          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteHistoryItem(${i})">删除</button>
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history');
+    const history = await res.json();
+    const section = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    if (!history.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = history.map(item => {
+      const date = new Date(item.created_at * 1000);
+      const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+      const preview = (item.original || '').slice(0, 60);
+      return `<div class="history-item" onclick="loadHistoryItem(${item.id})">
+        <div class="history-item-header">
+          <span class="history-meta">${timeStr} · ${item.model}</span>
+          <div class="history-actions">
+            <button class="btn btn-sm btn-copy" onclick="event.stopPropagation();copyToClipboardText('${encodeURIComponent(item.rewritten)}')">复制改写</button>
+            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteHistoryItem(${item.id})">删除</button>
+          </div>
         </div>
-      </div>
-      <div class="history-preview">${escapeHtml(preview)}...</div>
-    </div>`;
-  }).join('');
+        <div class="history-preview">${escapeHtml(preview)}...</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('加载历史记录失败', e);
+  }
 }
+
+async function loadHistoryItem(id) {
+  try {
+    const res = await fetch('/api/history');
+    const history = await res.json();
+    const item = history.find(h => h.id === id);
+    if (!item) return;
+    document.getElementById('resume').value = item.original;
+    document.getElementById('suggestions').innerHTML = renderMarkdown(escapeHtml(item.suggestions));
+    document.getElementById('rewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
+    document.getElementById('compareOriginal').innerHTML = escapeHtml(item.original).replace(/\n/g, '<br>');
+    document.getElementById('compareRewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
+    document.getElementById('results').style.display = 'block';
+    switchTab('detail');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    showError('加载记录失败');
+  }
+}
+
+async function deleteHistoryItem(id) {
+  try {
+    await fetch(`/api/history?id=${id}`, { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    showError('删除失败');
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('确定清空所有历史记录？')) return;
+  try {
+    await fetch('/api/history', { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    showError('清空失败');
+  }
+}
+
 function copyToClipboardText(encoded) {
   navigator.clipboard.writeText(decodeURIComponent(encoded)).then(() => showToast('已复制到剪贴板'));
 }
-
-// 启动时渲染历史
-renderHistory();
 
 function escapeHtml(text) {
   const d = document.createElement('div');
@@ -386,82 +408,6 @@ function renderMarkdown(text) {
     .replace(/<\/p><p>/g, '</p>\n<p>');
 }
 
-const PROMPT = `请分析以下简历，提供：
-1. **优化建议**：指出简历中的问题和具体的改进方向（如量化成果、关键词优化、格式改进、内容补充等）
-2. **改写后的简历**：基于建议改写一份更专业、更有竞争力的版本
-
-要求：
-- 不要输出任何开场白、寒暄或总结性语句，直接输出内容
-- 用 Markdown 格式输出
-- 用 "---SUGGESTIONS---" 和 "---REWRITTEN---" 作为分隔符分隔两部分内容`;
-
-async function analyze() {
-  const modelKey = modelSelect.value;
-  const config = MODELS[modelKey];
-  const apiKey = apiKeyInput.value.trim();
-  const resume = document.getElementById('resume').value.trim();
-
-  if (!apiKey) { showError(`请输入 ${config.name} API Key`); return; }
-  if (!resume) { showError('请粘贴简历内容'); return; }
-
-  localStorage.setItem(`api_key_${modelKey}`, apiKey);
-  hideError();
-
-  const btn = document.getElementById('submitBtn');
-  const btnText = document.getElementById('btnText');
-  const btnSpinner = document.getElementById('btnSpinner');
-  btn.disabled = true;
-  btnText.style.display = 'none';
-  btnSpinner.style.display = 'inline-flex';
-  document.getElementById('results').style.display = 'none';
-
-  try {
-    const response = await fetch(config.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: config.model,
-        max_tokens: 4096,
-        messages: [
-          { role: 'system', content: '你是一位资深的简历优化顾问，擅长分析简历并提供专业的改进建议。' },
-          { role: 'user', content: `${PROMPT}\n\n简历内容：\n${resume}` }
-        ]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API 请求失败 (${response.status})`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-
-    const parts = content.split('---REWRITTEN---');
-    const suggestions = parts[0].split('---SUGGESTIONS---').pop().trim();
-    const rewritten = parts[1] ? parts[1].trim() : content;
-
-    document.getElementById('suggestions').innerHTML = renderMarkdown(escapeHtml(suggestions));
-    document.getElementById('rewritten').innerHTML = renderMarkdown(escapeHtml(rewritten));
-    document.getElementById('compareOriginal').innerHTML = escapeHtml(resume).replace(/\n/g, '<br>');
-    document.getElementById('compareRewritten').innerHTML = renderMarkdown(escapeHtml(rewritten));
-    document.getElementById('results').style.display = 'block';
-    switchTab('detail');
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-
-    saveHistory({ time: Date.now(), model: config.name, original: resume, suggestions, rewritten });
-  } catch (e) {
-    showError(e.message);
-  } finally {
-    btn.disabled = false;
-    btnText.style.display = 'inline';
-    btnSpinner.style.display = 'none';
-  }
-}
-
 function showError(msg) {
   document.getElementById('error').innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
 }
@@ -471,10 +417,7 @@ function hideError() {
 
 function copyToClipboard(id) {
   const el = document.getElementById(id);
-  const text = el.innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('已复制到剪贴板');
-  });
+  navigator.clipboard.writeText(el.innerText).then(() => showToast('已复制到剪贴板'));
 }
 
 function showToast(msg) {
@@ -487,6 +430,62 @@ function showToast(msg) {
 document.getElementById('resume').addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) analyze();
 });
+
+// 管理后台
+function toggleAdmin() {
+  const section = document.getElementById('adminSection');
+  if (section.style.display === 'none' || !section.style.display) {
+    section.style.display = 'block';
+    loadAdminSettings();
+    section.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+async function loadAdminSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const settings = await res.json();
+    document.getElementById('adminKeyDeepseek').placeholder = settings.api_key_deepseek || '未设置';
+    document.getElementById('adminKeyMimo').placeholder = settings.api_key_mimo || '未设置';
+    document.getElementById('adminKeyZhipu').placeholder = settings.api_key_zhipu || '未设置';
+  } catch (e) {
+    console.error('加载配置失败', e);
+  }
+}
+
+async function saveApiKey(model) {
+  const input = document.getElementById(`adminKey${model.charAt(0).toUpperCase() + model.slice(1)}`);
+  const key = model === 'deepseek' ? 'adminKeyDeepseek' : model === 'mimo' ? 'adminKeyMimo' : 'adminKeyZhipu';
+  const el = document.getElementById(key);
+  const value = el.value.trim();
+  if (!value) { showAdminMsg('请输入 API Key', 'error'); return; }
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: `api_key_${model}`, value }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    el.value = '';
+    showAdminMsg(`${model} API Key 已保存`, 'success');
+    loadAdminSettings();
+  } catch (e) {
+    showAdminMsg('保存失败: ' + e.message, 'error');
+  }
+}
+
+function showAdminMsg(msg, type) {
+  const el = document.getElementById('adminMsg');
+  el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
+  setTimeout(() => el.innerHTML = '', 3000);
+}
+
+// 启动时加载历史记录
+loadHistory();
 </script>
 </body>
 </html>
