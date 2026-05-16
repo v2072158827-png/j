@@ -24,10 +24,17 @@ const PROMPT = `请分析以下简历，提供：
 
 export async function onRequestPost(context) {
   try {
-    const { model, resume } = await context.request.json();
+    const { model, resume, password } = await context.request.json();
 
     if (!model || !resume) {
       return Response.json({ error: '缺少必要参数' }, { status: 400 });
+    }
+
+    const db = context.env.DB;
+
+    const pwRow = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('user_password').first();
+    if (pwRow && pwRow.value && pwRow.value !== password) {
+      return Response.json({ error: '密码错误' }, { status: 403 });
     }
 
     const config = MODELS[model];
@@ -35,7 +42,6 @@ export async function onRequestPost(context) {
       return Response.json({ error: '不支持的模型' }, { status: 400 });
     }
 
-    const db = context.env.DB;
     const row = await db.prepare('SELECT value FROM settings WHERE key = ?').bind(`api_key_${model}`).first();
     const apiKey = row?.value;
 

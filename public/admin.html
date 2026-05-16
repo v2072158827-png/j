@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 简历优化工具</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; min-height: 100vh; }
+.container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+h1 { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 14px; }
+.card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+input[type="text"], input[type="password"] { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+input:focus { outline: none; border-color: #4361ee; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #4361ee; color: #fff; }
+.btn-primary:hover { background: #3a56d4; }
+.btn-sm { font-size: 13px; padding: 6px 14px; }
+.btn-danger { background: #fff0f0; color: #e63946; }
+.btn-danger:hover { background: #ffe0e0; }
+.btn-copy { background: #f0f0f0; color: #333; }
+.btn-copy:hover { background: #e0e0e0; }
+.error { color: #e63946; background: #fff0f0; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
+.success { color: #2d9d4e; background: #f0fff4; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
+.admin-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.admin-row label { flex-shrink: 0; width: 100px; margin-bottom: 0; line-height: 42px; }
+.admin-row input { flex: 1; }
+.admin-row .btn { flex-shrink: 0; }
+.history-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.history-item-header { display: flex; justify-content: space-between; align-items: center; }
+.history-meta { font-size: 13px; color: #999; }
+.history-preview { font-size: 14px; color: #555; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-actions { display: flex; gap: 8px; }
+h2 { font-size: 18px; margin-bottom: 16px; }
+.back-link { display: block; text-align: center; margin-top: 24px; color: #4361ee; text-decoration: none; font-size: 14px; }
+.back-link:hover { text-decoration: underline; }
+#loginSection { max-width: 400px; margin: 80px auto 0; }
+#adminContent { display: none; }
+.password-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.password-row label { flex-shrink: 0; width: 80px; margin-bottom: 0; line-height: 42px; }
+.password-row input { flex: 1; }
+.password-row .btn { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .admin-row, .password-row { flex-direction: column; align-items: stretch; }
+  .admin-row label, .password-row label { width: auto; line-height: normal; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="loginSection">
+    <h1>管理后台</h1>
+    <p class="subtitle">请输入管理密码</p>
+    <div class="card">
+      <label for="adminPassword">管理密码</label>
+      <input type="password" id="adminPassword" placeholder="请输入管理密码" onkeydown="if(event.key==='Enter')login()" />
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="login()">登录</button>
+      </div>
+      <div id="loginError"></div>
+    </div>
+  </div>
+
+  <div id="adminContent">
+    <h1>管理后台</h1>
+    <p class="subtitle">配置 API Key 和管理数据</p>
+
+    <div class="card">
+      <h2>API Key 配置</h2>
+      <div class="admin-row">
+        <label>DeepSeek</label>
+        <input type="password" id="adminKeyDeepseek" placeholder="输入 DeepSeek API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('deepseek')">保存</button>
+      </div>
+      <div class="admin-row">
+        <label>MiMo</label>
+        <input type="password" id="adminKeyMimo" placeholder="输入 MiMo API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('mimo')">保存</button>
+      </div>
+      <div class="admin-row">
+        <label>智谱AI</label>
+        <input type="password" id="adminKeyZhipu" placeholder="输入智谱 API Key" />
+        <button class="btn btn-copy" onclick="saveApiKey('zhipu')">保存</button>
+      </div>
+      <div id="apiMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>密码管理</h2>
+      <div class="password-row">
+        <label>使用密码</label>
+        <input type="password" id="newUserPw" placeholder="新密码" />
+        <button class="btn btn-copy" onclick="savePassword('user_password')">修改</button>
+      </div>
+      <div class="password-row">
+        <label>管理密码</label>
+        <input type="password" id="newAdminPw" placeholder="新密码" />
+        <button class="btn btn-copy" onclick="savePassword('admin_password')">修改</button>
+      </div>
+      <div id="pwMsg"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="margin-bottom:0">历史记录</h2>
+        <button class="btn btn-sm btn-danger" onclick="clearHistory()">清空历史</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+    <a href="/" class="back-link">返回首页</a>
+  </div>
+</div>
+
+<script>
+let adminPassword = '';
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+async function login() {
+  adminPassword = document.getElementById('adminPassword').value.trim();
+  if (!adminPassword) { showLoginError('请输入密码'); return; }
+
+  try {
+    const res = await fetch('/api/settings?password=' + encodeURIComponent(adminPassword));
+    const data = await res.json();
+    if (!res.ok) { showLoginError(data.error || '密码错误'); return; }
+
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+
+    document.getElementById('adminKeyDeepseek').placeholder = data.api_key_deepseek || '未设置';
+    document.getElementById('adminKeyMimo').placeholder = data.api_key_mimo || '未设置';
+    document.getElementById('adminKeyZhipu').placeholder = data.api_key_zhipu || '未设置';
+
+    loadHistory();
+  } catch (e) {
+    showLoginError('连接失败: ' + e.message);
+  }
+}
+
+function showLoginError(msg) {
+  document.getElementById('loginError').innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
+}
+
+async function saveApiKey(model) {
+  const keyMap = { deepseek: 'adminKeyDeepseek', mimo: 'adminKeyMimo', zhipu: 'adminKeyZhipu' };
+  const el = document.getElementById(keyMap[model]);
+  const value = el.value.trim();
+  if (!value) { showApiMsg('请输入 API Key', 'error'); return; }
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: `api_key_${model}`, value, password: adminPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    el.value = '';
+    showApiMsg(`${model} API Key 已保存`, 'success');
+    login();
+  } catch (e) {
+    showApiMsg('保存失败: ' + e.message, 'error');
+  }
+}
+
+async function savePassword(key) {
+  const el = document.getElementById(key === 'user_password' ? 'newUserPw' : 'newAdminPw');
+  const value = el.value.trim();
+  if (!value) { showPwMsg('请输入新密码', 'error'); return; }
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value, password: adminPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    el.value = '';
+    if (key === 'admin_password') adminPassword = value;
+    showPwMsg('密码已更新', 'success');
+  } catch (e) {
+    showPwMsg('修改失败: ' + e.message, 'error');
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history?password=' + encodeURIComponent(adminPassword));
+    const history = await res.json();
+    const list = document.getElementById('historyList');
+    if (!history.length) { list.innerHTML = '<p style="color:#999;font-size:14px">暂无记录</p>'; return; }
+    list.innerHTML = history.map(item => {
+      const date = new Date(item.created_at * 1000);
+      const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+      const preview = (item.original || '').slice(0, 60);
+      return `<div class="history-item">
+        <div class="history-item-header">
+          <span class="history-meta">${timeStr} · ${item.model}</span>
+          <div class="history-actions">
+            <button class="btn btn-sm btn-copy" onclick="copyText('${encodeURIComponent(item.rewritten)}')">复制改写</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteHistory(${item.id})">删除</button>
+          </div>
+        </div>
+        <div class="history-preview">${escapeHtml(preview)}...</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('加载历史失败', e);
+  }
+}
+
+async function deleteHistory(id) {
+  try {
+    await fetch(`/api/history?id=${id}&password=${encodeURIComponent(adminPassword)}`, { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    alert('删除失败');
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('确定清空所有历史记录？')) return;
+  try {
+    await fetch(`/api/history?password=${encodeURIComponent(adminPassword)}`, { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    alert('清空失败');
+  }
+}
+
+function copyText(encoded) {
+  navigator.clipboard.writeText(decodeURIComponent(encoded)).then(() => alert('已复制'));
+}
+
+function showApiMsg(msg, type) {
+  const el = document.getElementById('apiMsg');
+  el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
+  setTimeout(() => el.innerHTML = '', 3000);
+}
+
+function showPwMsg(msg, type) {
+  const el = document.getElementById('pwMsg');
+  el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
+  setTimeout(() => el.innerHTML = '', 3000);
+}
+</script>
+</body>
+</html>

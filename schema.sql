@@ -16,3 +16,5 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('default_model', 'deepseek')
 INSERT OR IGNORE INTO settings (key, value) VALUES ('api_key_deepseek', '');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('api_key_mimo', '');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('api_key_zhipu', '');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('user_password', '123456');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_password', 'admin888');

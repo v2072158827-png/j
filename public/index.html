@@ -12,7 +12,7 @@ h1 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; 
 .subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 15px; }
 .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-select, input[type="text"], input[type="password"], textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+select, input[type="password"], textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
 select:focus, input:focus, textarea:focus { outline: none; border-color: #4361ee; }
 textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
@@ -43,7 +43,6 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error { color: #e63946; background: #fff0f0; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
-.success { color: #2d9d4e; background: #f0fff4; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
 #results { display: none; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
 .toast.show { opacity: 1; }
@@ -56,30 +55,23 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 .compare-col h4 { font-size: 14px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px solid #eee; }
 .compare-col.original h4 { color: #e63946; border-color: #e63946; }
 .compare-col.rewritten h4 { color: #2d9d4e; border-color: #2d9d4e; }
-.history-section { margin-top: 32px; }
-.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.history-header h2 { font-size: 20px; }
 .btn-sm { font-size: 13px; padding: 6px 14px; }
 .btn-danger { background: #fff0f0; color: #e63946; }
 .btn-danger:hover { background: #ffe0e0; }
+.history-section { margin-top: 32px; }
+.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.history-header h2 { font-size: 20px; }
 .history-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer; transition: box-shadow 0.2s; }
 .history-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 .history-item-header { display: flex; justify-content: space-between; align-items: center; }
 .history-meta { font-size: 13px; color: #999; }
 .history-preview { font-size: 14px; color: #555; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-actions { display: flex; gap: 8px; }
-.admin-toggle { text-align: center; margin-top: 40px; }
-.btn-link { background: none; border: none; color: #999; font-size: 13px; cursor: pointer; text-decoration: underline; }
-.btn-link:hover { color: #4361ee; }
-#adminSection { display: none; }
-.admin-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
-.admin-row label { flex-shrink: 0; width: 100px; margin-bottom: 0; line-height: 42px; }
-.admin-row input { flex: 1; }
-.admin-row .btn { flex-shrink: 0; }
+.btn-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #4361ee; font-size: 13px; cursor: pointer; padding: 4px 8px; }
+.key-wrap { position: relative; display: flex; }
+.key-wrap input { padding-right: 56px; }
 @media (max-width: 640px) {
   .compare-wrap { flex-direction: column; }
-  .admin-row { flex-direction: column; align-items: stretch; }
-  .admin-row label { width: auto; line-height: normal; }
 }
 </style>
 </head>
@@ -87,6 +79,14 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 <div class="container">
   <h1>简历优化工具</h1>
   <p class="subtitle">粘贴你的简历，AI 帮你优化提升</p>
+
+  <div class="card">
+    <label for="userPassword">使用密码</label>
+    <div class="key-wrap">
+      <input type="password" id="userPassword" placeholder="请输入使用密码" />
+      <button class="btn-toggle" type="button" onclick="togglePw()">显示</button>
+    </div>
+  </div>
 
   <div class="card">
     <label for="model">选择模型</label>
@@ -156,40 +156,6 @@ textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
       </div>
     </div>
   </div>
-
-  <div id="historySection" class="history-section" style="display:none">
-    <div class="history-header">
-      <h2>历史记录</h2>
-      <button class="btn btn-sm btn-danger" onclick="clearHistory()">清空历史</button>
-    </div>
-    <div id="historyList"></div>
-  </div>
-
-  <div class="admin-toggle">
-    <button class="btn-link" onclick="toggleAdmin()">管理后台</button>
-  </div>
-
-  <div id="adminSection">
-    <div class="card">
-      <h2 style="font-size:18px; margin-bottom:20px;">API Key 配置</h2>
-      <div class="admin-row">
-        <label>DeepSeek</label>
-        <input type="password" id="adminKeyDeepseek" placeholder="输入 DeepSeek API Key" />
-        <button class="btn btn-copy" onclick="saveApiKey('deepseek')">保存</button>
-      </div>
-      <div class="admin-row">
-        <label>MiMo</label>
-        <input type="password" id="adminKeyMimo" placeholder="输入 MiMo API Key" />
-        <button class="btn btn-copy" onclick="saveApiKey('mimo')">保存</button>
-      </div>
-      <div class="admin-row">
-        <label>智谱AI</label>
-        <input type="password" id="adminKeyZhipu" placeholder="输入智谱 API Key" />
-        <button class="btn btn-copy" onclick="saveApiKey('zhipu')">保存</button>
-      </div>
-      <div id="adminMsg"></div>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -203,6 +169,21 @@ const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const uploadInfo = document.getElementById('uploadInfo');
 const resumeInput = document.getElementById('resume');
+const passwordInput = document.getElementById('userPassword');
+
+const savedPw = sessionStorage.getItem('user_password');
+if (savedPw) passwordInput.value = savedPw;
+
+function togglePw() {
+  const btn = event.target;
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    btn.textContent = '隐藏';
+  } else {
+    passwordInput.type = 'password';
+    btn.textContent = '显示';
+  }
+}
 
 uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
 uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dragover'); });
@@ -274,11 +255,15 @@ function switchTab(tab) {
 
 async function analyze() {
   const modelKey = modelSelect.value;
-  const resume = document.getElementById('resume').value.trim();
+  const resume = resumeInput.value.trim();
+  const password = passwordInput.value.trim();
 
+  if (!password) { showError('请输入使用密码'); return; }
   if (!resume) { showError('请粘贴简历内容'); return; }
 
+  sessionStorage.setItem('user_password', password);
   hideError();
+
   const btn = document.getElementById('submitBtn');
   const btnText = document.getElementById('btnText');
   const btnSpinner = document.getElementById('btnSpinner');
@@ -291,7 +276,7 @@ async function analyze() {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: modelKey, resume }),
+      body: JSON.stringify({ model: modelKey, resume, password }),
     });
 
     const data = await response.json();
@@ -304,8 +289,6 @@ async function analyze() {
     document.getElementById('results').style.display = 'block';
     switchTab('detail');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-
-    loadHistory();
   } catch (e) {
     showError(e.message);
   } finally {
@@ -313,76 +296,6 @@ async function analyze() {
     btnText.style.display = 'inline';
     btnSpinner.style.display = 'none';
   }
-}
-
-async function loadHistory() {
-  try {
-    const res = await fetch('/api/history');
-    const history = await res.json();
-    const section = document.getElementById('historySection');
-    const list = document.getElementById('historyList');
-    if (!history.length) { section.style.display = 'none'; return; }
-    section.style.display = 'block';
-    list.innerHTML = history.map(item => {
-      const date = new Date(item.created_at * 1000);
-      const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-      const preview = (item.original || '').slice(0, 60);
-      return `<div class="history-item" onclick="loadHistoryItem(${item.id})">
-        <div class="history-item-header">
-          <span class="history-meta">${timeStr} · ${item.model}</span>
-          <div class="history-actions">
-            <button class="btn btn-sm btn-copy" onclick="event.stopPropagation();copyToClipboardText('${encodeURIComponent(item.rewritten)}')">复制改写</button>
-            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteHistoryItem(${item.id})">删除</button>
-          </div>
-        </div>
-        <div class="history-preview">${escapeHtml(preview)}...</div>
-      </div>`;
-    }).join('');
-  } catch (e) {
-    console.error('加载历史记录失败', e);
-  }
-}
-
-async function loadHistoryItem(id) {
-  try {
-    const res = await fetch('/api/history');
-    const history = await res.json();
-    const item = history.find(h => h.id === id);
-    if (!item) return;
-    document.getElementById('resume').value = item.original;
-    document.getElementById('suggestions').innerHTML = renderMarkdown(escapeHtml(item.suggestions));
-    document.getElementById('rewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
-    document.getElementById('compareOriginal').innerHTML = escapeHtml(item.original).replace(/\n/g, '<br>');
-    document.getElementById('compareRewritten').innerHTML = renderMarkdown(escapeHtml(item.rewritten));
-    document.getElementById('results').style.display = 'block';
-    switchTab('detail');
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-  } catch (e) {
-    showError('加载记录失败');
-  }
-}
-
-async function deleteHistoryItem(id) {
-  try {
-    await fetch(`/api/history?id=${id}`, { method: 'DELETE' });
-    loadHistory();
-  } catch (e) {
-    showError('删除失败');
-  }
-}
-
-async function clearHistory() {
-  if (!confirm('确定清空所有历史记录？')) return;
-  try {
-    await fetch('/api/history', { method: 'DELETE' });
-    loadHistory();
-  } catch (e) {
-    showError('清空失败');
-  }
-}
-
-function copyToClipboardText(encoded) {
-  navigator.clipboard.writeText(decodeURIComponent(encoded)).then(() => showToast('已复制到剪贴板'));
 }
 
 function escapeHtml(text) {
@@ -430,62 +343,6 @@ function showToast(msg) {
 document.getElementById('resume').addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) analyze();
 });
-
-// 管理后台
-function toggleAdmin() {
-  const section = document.getElementById('adminSection');
-  if (section.style.display === 'none' || !section.style.display) {
-    section.style.display = 'block';
-    loadAdminSettings();
-    section.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    section.style.display = 'none';
-  }
-}
-
-async function loadAdminSettings() {
-  try {
-    const res = await fetch('/api/settings');
-    const settings = await res.json();
-    document.getElementById('adminKeyDeepseek').placeholder = settings.api_key_deepseek || '未设置';
-    document.getElementById('adminKeyMimo').placeholder = settings.api_key_mimo || '未设置';
-    document.getElementById('adminKeyZhipu').placeholder = settings.api_key_zhipu || '未设置';
-  } catch (e) {
-    console.error('加载配置失败', e);
-  }
-}
-
-async function saveApiKey(model) {
-  const input = document.getElementById(`adminKey${model.charAt(0).toUpperCase() + model.slice(1)}`);
-  const key = model === 'deepseek' ? 'adminKeyDeepseek' : model === 'mimo' ? 'adminKeyMimo' : 'adminKeyZhipu';
-  const el = document.getElementById(key);
-  const value = el.value.trim();
-  if (!value) { showAdminMsg('请输入 API Key', 'error'); return; }
-
-  try {
-    const res = await fetch('/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: `api_key_${model}`, value }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-    el.value = '';
-    showAdminMsg(`${model} API Key 已保存`, 'success');
-    loadAdminSettings();
-  } catch (e) {
-    showAdminMsg('保存失败: ' + e.message, 'error');
-  }
-}
-
-function showAdminMsg(msg, type) {
-  const el = document.getElementById('adminMsg');
-  el.innerHTML = `<div class="${type}">${escapeHtml(msg)}</div>`;
-  setTimeout(() => el.innerHTML = '', 3000);
-}
-
-// 启动时加载历史记录
-loadHistory();
 </script>
 </body>
 </html>
