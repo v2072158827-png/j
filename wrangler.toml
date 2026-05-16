@@ -4,4 +4,4 @@ pages_build_output_dir = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "resume-optimizer-db"
-database_id = "placeholder-will-be-filled-after-creating-db"
+database_id = "e3fd804c-95f5-431d-8d8a-95fdd2fa9c47"
