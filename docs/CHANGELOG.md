@@ -32,3 +32,8 @@
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
 | public/admin.html | 修改 | 添加"查看原"按钮和模态框，可查看完整原简历内容 |
+
+### 修复记录
+- **问题：** GitHub Actions 部署失败，Cloudflare API Token 权限不足
+- **解决：** 创建新的 API Token（Edit Cloudflare Workers 模板），更新 GitHub Secrets
+- **结果：** 部署恢复正常
