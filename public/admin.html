@@ -36,6 +36,14 @@ input:focus { outline: none; border-color: #4361ee; }
 h2 { font-size: 18px; margin-bottom: 16px; }
 .back-link { display: block; text-align: center; margin-top: 24px; color: #4361ee; text-decoration: none; font-size: 14px; }
 .back-link:hover { text-decoration: underline; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-header h3 { font-size: 18px; margin: 0; }
+.modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; line-height: 1; }
+.modal-close:hover { color: #333; }
+.modal-content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
 #loginSection { max-width: 400px; margin: 80px auto 0; }
 #adminContent { display: none; }
 .password-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
@@ -125,6 +133,16 @@ h2 { font-size: 18px; margin-bottom: 16px; }
     </div>
 
     <a href="/" class="back-link">返回首页</a>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>原简历内容</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-content" id="modalContent"></div>
   </div>
 </div>
 
@@ -221,6 +239,7 @@ async function loadHistory() {
         <div class="history-item-header">
           <span class="history-meta">${timeStr} · ${item.model}</span>
           <div class="history-actions">
+            <button class="btn btn-sm btn-copy" onclick="viewOriginal('${encodeURIComponent(item.original)}')">查看原</button>
             <button class="btn btn-sm btn-copy" onclick="copyText('${encodeURIComponent(item.rewritten)}')">复制改写</button>
             <button class="btn btn-sm btn-danger" onclick="deleteHistory(${item.id})">删除</button>
           </div>
@@ -254,6 +273,15 @@ async function clearHistory() {
 
 function copyText(encoded) {
   navigator.clipboard.writeText(decodeURIComponent(encoded)).then(() => alert('已复制'));
+}
+
+function viewOriginal(encoded) {
+  document.getElementById('modalContent').textContent = decodeURIComponent(encoded);
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
 }
 
 function showApiMsg(msg, type) {
