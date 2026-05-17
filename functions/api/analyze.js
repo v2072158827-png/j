@@ -20,7 +20,9 @@ const PROMPT = `请分析以下简历，提供：
 要求：
 - 不要输出任何开场白、寒暄或总结性语句，直接输出内容
 - 用 Markdown 格式输出
-- 用 "---SUGGESTIONS---" 和 "---REWRITTEN---" 作为分隔符分隔两部分内容`;
+- 用 "---SUGGESTIONS---" 和 "---REWRITTEN---" 作为分隔符分隔两部分内容
+- 【重要】改写时禁止虚构原简历中不存在的个人信息（如电话、邮箱、地址、姓名等）
+- 【重要】只能基于原简历已有内容进行优化、润色和重新组织，不能添加新的事实性信息`;
 
 export async function onRequestPost(context) {
   try {
